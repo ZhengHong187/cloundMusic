@@ -6,13 +6,13 @@
 </template>
 
 <script>
-import MusicHeader from "../renderer/components/musicHeader";
-  export default {
-    name: 'cloudmusic',
-    components: {
-      MusicHeader
-    }
-  };
+import MusicHeader from '../renderer/components/musicHeader';
+export default {
+  name: 'cloudmusic',
+  components: {
+    MusicHeader,
+  },
+};
 </script>
 
 <style lang="scss" >
