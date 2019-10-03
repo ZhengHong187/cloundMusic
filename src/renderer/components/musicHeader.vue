@@ -20,21 +20,21 @@
       <i class="iconfont icon-rectangle" style="-webkit-app-region: no-drag;" @click="max"></i>
       <i class="iconfont icon-code" style="-webkit-app-region: no-drag;" @click="close"></i>
     </div>
-    <loginModal v-show="loginModalShow" />
-    <el-dialog title="注册" :visible.sync="dialogVisible" modal="modal" append-to-body="append"
+    <!-- <loginModal v-show="loginModalShow" /> -->
+    <el-dialog title="注册" :visible.sync="dialogVisible" modal="modal" append-to-body
       modal-append-to-body="toBody" width="50%" :before-close="handleClose">
       <!-- <span>这是一段信息</span> -->
       <div class="lineRegister">
-        <el-input v-model="input" placeholder="请输入注册手机号"></el-input>
+        <el-input v-model="userPhone" type="phone" placeholder="请输入手机号"></el-input>
       </div>
       <div class="lineRegister">
         <el-row type="flex" justify="space-between">
           <el-col :span="14">
             <!-- <div class="grid-content bg-purple-dark"></div> -->
-            <el-input placeholder="请输入验证码" v-model="input" show-password></el-input>
+            <el-input placeholder="密码" v-model="password" show-password></el-input>
           </el-col>
           <el-col :span="4">
-            <el-button type="danger" size="small" round>发送验证码</el-button>
+            <el-button type="danger" size="small" round @click="login">登陆</el-button>
           </el-col>
           <el-col :span="1">
           </el-col>
@@ -48,9 +48,14 @@
     ipcRenderer
   } = require('electron')
   import loginModal from './loginModal'
+  import {mapState} from 'vuex'
   export default {
     data() {
       return {
+        phone: '', // 手机号 
+        captcha: '', // 验证码
+        userPhone: '', // 用户名
+        password: '', // 密码
         loginModalShow: false,
         userName: false,
         avatarUrl: '',
@@ -58,11 +63,60 @@
         dialogVisible: false,
         modal: false,
         append: true,
-        toBody: true
+        toBody: true,
 
       }
     },
+    created () {
+      this.initUserInfo()
+    },
+    computed: {
+      ...mapState({
+        userInfo: state => state.userInfo
+      })
+    },
     methods: {
+      initUserInfo () {
+        console.log('999999')
+        let value = window.localStorage.getItem('userInfo')
+        let res = JSON.parse(value)
+        console.log(res, '缓存')
+        if (res !== null) {
+          this.userName = true
+          this.nickName = res.data.profile.nickname
+          this.avatarUrl = res.data.profile.avatarUrl
+        } else {
+           this.userName = false
+        }
+        // window.localStorage.setItem('userInfo', )
+      },
+      // 登陆
+      async login () {
+        let params = {}
+        params.phone = this.userPhone
+        params.password = this.password
+        let res = await this.$store.dispatch('login', params)
+        console.log(res, '88888');
+        if (res.status === 200) {
+          this.userName = true
+          this.dialogVisible = !this.dialogVisible
+          this.nickName = res.data.profile.nickname
+          this.avatarUrl = res.data.profile.avatarUrl
+          window.localStorage.setItem('userInfo', JSON.stringify(res))
+          this.$message({
+          message: '恭喜你，登陆成功',
+          type: 'success'
+        })
+        } else {
+          this.$message('登陆失败')
+        }
+      },
+      // 发送严重鞥吗
+      setCaptcha () {
+        let params = this.phone
+        this.$store.dispatch('setCaptcha', params)
+        console.log('发送验证码')
+      },
       // 窗口最小化
       min() {
         ipcRenderer.send('min')
